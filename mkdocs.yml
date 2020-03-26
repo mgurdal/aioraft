@@ -3,6 +3,10 @@ site_description: Asyncronous python RAFT implementation
 site_author: Mehmet Gürdal
 site_url: https://mgurdal.github.io/aioraft
 
+repo_name: mgurdal/aioraft
+repo_url: https://github.com/mgurdal/aioraft
+edit_uri: https://github.com/mgurdal/aioraft/blob/master/docs
+
 
 nav:
     - Home: index.md
