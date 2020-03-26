@@ -1,0 +1,814 @@
+
+
+
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      <meta http-equiv="x-ua-compatible" content="ie=edge">
+      
+        <meta name="description" content="Asyncronous python RAFT implementation">
+      
+      
+        <link rel="canonical" href="https://mgurdal.github.io/aioraft/terminology/">
+      
+      
+        <meta name="author" content="Mehmet Gürdal">
+      
+      
+        <meta name="lang:clipboard.copy" content="Copy to clipboard">
+      
+        <meta name="lang:clipboard.copied" content="Copied to clipboard">
+      
+        <meta name="lang:search.language" content="en">
+      
+        <meta name="lang:search.pipeline.stopwords" content="True">
+      
+        <meta name="lang:search.pipeline.trimmer" content="True">
+      
+        <meta name="lang:search.result.none" content="No matching documents">
+      
+        <meta name="lang:search.result.one" content="1 matching document">
+      
+        <meta name="lang:search.result.other" content="# matching documents">
+      
+        <meta name="lang:search.tokenizer" content="[\s\-]+">
+      
+      <link rel="shortcut icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.0.4, mkdocs-material-4.2.0">
+    
+    
+      
+        <title>What is RAFT - Aioraft</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/application.750b69bd.css">
+      
+      
+    
+    
+      <script src="../assets/javascripts/modernizr.74668098.js"></script>
+    
+    
+      
+        <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700|Roboto+Mono">
+        <style>body,input{font-family:"Roboto","Helvetica Neue",Helvetica,Arial,sans-serif}code,kbd,pre{font-family:"Roboto Mono","Courier New",Courier,monospace}</style>
+      
+    
+    <link rel="stylesheet" href="../assets/fonts/material-icons.css">
+    
+    
+    
+      
+    
+    
+  </head>
+  
+    <body dir="ltr">
+  
+    <svg class="md-svg">
+      <defs>
+        
+        
+      </defs>
+    </svg>
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" data-md-component="overlay" for="__drawer"></label>
+    
+      <a href="#raft" tabindex="1" class="md-skip">
+        Skip to content
+      </a>
+    
+    
+      <header class="md-header" data-md-component="header">
+  <nav class="md-header-nav md-grid">
+    <div class="md-flex">
+      <div class="md-flex__cell md-flex__cell--shrink">
+        <a href="https://mgurdal.github.io/aioraft" title="Aioraft" class="md-header-nav__button md-logo">
+          
+            <i class="md-icon"></i>
+          
+        </a>
+      </div>
+      <div class="md-flex__cell md-flex__cell--shrink">
+        <label class="md-icon md-icon--menu md-header-nav__button" for="__drawer"></label>
+      </div>
+      <div class="md-flex__cell md-flex__cell--stretch">
+        <div class="md-flex__ellipsis md-header-nav__title" data-md-component="title">
+          
+            <span class="md-header-nav__topic">
+              Aioraft
+            </span>
+            <span class="md-header-nav__topic">
+              What is RAFT
+            </span>
+          
+        </div>
+      </div>
+      <div class="md-flex__cell md-flex__cell--shrink">
+        
+          <label class="md-icon md-icon--search md-header-nav__button" for="__search"></label>
+          
+<div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="query" data-md-state="active">
+      <label class="md-icon md-search__icon" for="__search"></label>
+      <button type="reset" class="md-icon md-search__icon" data-md-component="reset" tabindex="-1">
+        &#xE5CD;
+      </button>
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="result">
+          <div class="md-search-result__meta">
+            Type to start searching
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+        
+      </div>
+      
+    </div>
+  </nav>
+</header>
+    
+    <div class="md-container">
+      
+        
+      
+      
+      <main class="md-main">
+        <div class="md-main__inner md-grid" data-md-component="container">
+          
+            
+              <div class="md-sidebar md-sidebar--primary" data-md-component="navigation">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    <nav class="md-nav md-nav--primary" data-md-level="0">
+  <label class="md-nav__title md-nav__title--site" for="__drawer">
+    <a href="https://mgurdal.github.io/aioraft" title="Aioraft" class="md-nav__button md-logo">
+      
+        <i class="md-icon"></i>
+      
+    </a>
+    Aioraft
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href=".." title="Home" class="md-nav__link">
+      Home
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+  
+
+
+  <li class="md-nav__item md-nav__item--active">
+    
+    <input class="md-toggle md-nav__toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+    
+      
+    
+    
+      <label class="md-nav__link md-nav__link--active" for="__toc">
+        What is RAFT
+      </label>
+    
+    <a href="./" title="What is RAFT" class="md-nav__link md-nav__link--active">
+      What is RAFT
+    </a>
+    
+      
+<nav class="md-nav md-nav--secondary">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">Table of contents</label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#uzlasmaconsensus" title="Uzlaşma(Consensus)" class="md-nav__link">
+    Uzlaşma(Consensus)
+  </a>
+  
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ornek" title="Örnek" class="md-nav__link">
+    Örnek
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#raft-uzlasma-mekanizmas" title="RAFT Uzlaşma Mekanizması" class="md-nav__link">
+    RAFT Uzlaşma Mekanizması
+  </a>
+  
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sunucu-rolleri" title="Sunucu Rolleri" class="md-nav__link">
+    Sunucu Rolleri
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#calsma-donemleri" title="Çalışma Dönemleri" class="md-nav__link">
+    Çalışma Dönemleri
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rollerin-gorevleri" title="Rollerin Görevleri" class="md-nav__link">
+    Rollerin Görevleri
+  </a>
+  
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ortak-gorevler" title="Ortak Görevler" class="md-nav__link">
+    Ortak Görevler
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#follower" title="Follower" class="md-nav__link">
+    Follower
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#candidate" title="Candidate" class="md-nav__link">
+    Candidate
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#leader" title="Leader" class="md-nav__link">
+    Leader
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#haberlesme" title="Haberleşme" class="md-nav__link">
+    Haberleşme
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sunucularda-saklanan-bilgiler" title="Sunucularda Saklanan Bilgiler" class="md-nav__link">
+    Sunucularda Saklanan Bilgiler
+  </a>
+  
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#tum-sunucularda-kalc-olarak-saklanan-bilgiler" title="Tüm Sunucularda Kalıcı Olarak Saklanan Bilgiler" class="md-nav__link">
+    Tüm Sunucularda Kalıcı Olarak Saklanan Bilgiler
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tum-sunucularda-degisken-bilgiler" title="Tüm Sunucularda Değişken Bilgiler" class="md-nav__link">
+    Tüm Sunucularda Değişken Bilgiler
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lidere-ozgu-bilgiler" title="Lidere Özgü Bilgiler" class="md-nav__link">
+    Lidere Özgü Bilgiler
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+      
+      
+      
+      
+    </ul>
+  
+</nav>
+    
+  </li>
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="toc">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+<nav class="md-nav md-nav--secondary">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">Table of contents</label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#uzlasmaconsensus" title="Uzlaşma(Consensus)" class="md-nav__link">
+    Uzlaşma(Consensus)
+  </a>
+  
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ornek" title="Örnek" class="md-nav__link">
+    Örnek
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#raft-uzlasma-mekanizmas" title="RAFT Uzlaşma Mekanizması" class="md-nav__link">
+    RAFT Uzlaşma Mekanizması
+  </a>
+  
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sunucu-rolleri" title="Sunucu Rolleri" class="md-nav__link">
+    Sunucu Rolleri
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#calsma-donemleri" title="Çalışma Dönemleri" class="md-nav__link">
+    Çalışma Dönemleri
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rollerin-gorevleri" title="Rollerin Görevleri" class="md-nav__link">
+    Rollerin Görevleri
+  </a>
+  
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ortak-gorevler" title="Ortak Görevler" class="md-nav__link">
+    Ortak Görevler
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#follower" title="Follower" class="md-nav__link">
+    Follower
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#candidate" title="Candidate" class="md-nav__link">
+    Candidate
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#leader" title="Leader" class="md-nav__link">
+    Leader
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#haberlesme" title="Haberleşme" class="md-nav__link">
+    Haberleşme
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sunucularda-saklanan-bilgiler" title="Sunucularda Saklanan Bilgiler" class="md-nav__link">
+    Sunucularda Saklanan Bilgiler
+  </a>
+  
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#tum-sunucularda-kalc-olarak-saklanan-bilgiler" title="Tüm Sunucularda Kalıcı Olarak Saklanan Bilgiler" class="md-nav__link">
+    Tüm Sunucularda Kalıcı Olarak Saklanan Bilgiler
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tum-sunucularda-degisken-bilgiler" title="Tüm Sunucularda Değişken Bilgiler" class="md-nav__link">
+    Tüm Sunucularda Değişken Bilgiler
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lidere-ozgu-bilgiler" title="Lidere Özgü Bilgiler" class="md-nav__link">
+    Lidere Özgü Bilgiler
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+      
+      
+      
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content">
+            <article class="md-content__inner md-typeset">
+              
+                
+                
+                <h1 id="raft">RAFT</h1>
+<p><img src="https://raft.github.io/logo/annie-solo.png" width="250px"/></p>
+<p>RAFT, sunucular arasında uzlaşma(concensus) sağlayan bir algoritmadır.</p>
+<p>RAFT sayesinde dağıtık bir sistem, sunucuların yarısından fazlası ayakta kaldığı
+sürece, normal bir şekilde hizmet verebilir.</p>
+<h2 id="uzlasmaconsensus">Uzlaşma(Consensus)</h2>
+<p>Dağıtık bir sistemde, tüm sunucuların aynı verilere sahip olduğundan emin olmasıdır.
+Uzlaşma algoritmaları sunucuların çoğunluğu hizmet verebildiği sürece ilerlemeye devam edebilir. 
+Örneğin; 5 sunucuya sahip bir sistem, sunucuların 2si çökse dahi normal bir şekilde hizmet verebilir.</p>
+<p>Uzlaşma algoritmalarının hataya tölere şekilde çalışması genellikle çoğaltılmış 
+durum makineleri(<strong>replicated state machine</strong>) ile sağlanır. Çoğaltılmış durum makinelerinde,
+her sunucunun bir durum makinesi ve makineye gelen komutları kaydettiği bir logu olur.
+Buradaki amaç durum makinesini hataya tölere etmektir. </p>
+<p><strong>Hata töleransı (fault-tolerance)</strong>: Sistemin, bazı parçaları hata verse bile düzgün bir şekilde
+hizmet verebilmesidir.</p>
+<p>Durum makineleri ve komut kayıtları RAFT gibi bir sistemle çoğaltılarak istemciye(<strong>client</strong>) 
+güvenli tek bir durum makinesinde komut çalıştırılıyormuş gibi gösterilebilir.</p>
+<h3 id="ornek">Örnek</h3>
+<p>Sistemin çalışma yapısını bir örnekle açıklayalım.
+Elimizde sisteme veri ekleyebildiğimiz bir durum makinesi olsun.
+Client bu durum makinesine bir key ile veri ekleme(<code>add</code>) komutu gönderebilir.</p>
+<div class="codehilite"><pre><span></span><span class="n">state_machine</span> <span class="o">=</span> <span class="n">StateMachine</span><span class="p">()</span>
+
+<span class="n">state_machine</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="s1">&#39;add&#39;</span><span class="p">,</span> <span class="s1">&#39;total&#39;</span><span class="p">,</span> <span class="mi">2020</span><span class="p">)</span>
+</pre></div>
+
+
+<p>Bu durum makinesini çoğaltığımız zaman birbirleri ile her zaman senkronize olmasını sağlamamız gerekiyor.</p>
+<p>Bunun için durum makinelerine bir komut geldiğinde; </p>
+<ul>
+<li>önce bu komutu kalıcı bir şekilde sunucuda depolamalı,</li>
+<li>ardından komutu diğer durum makinelerine dağıtmalı</li>
+<li>ve bunun sonunda tüm durum makinelerinde komutu çalıştırmalıyız.</li>
+</ul>
+<p><img alt="consensus" src="../assets/img/consensus.gif" /></p>
+<p>Bütün sunucular her zaman aynı durum makinesine ve loga sahip olacağı için, 
+herhangi bir zamanda lider(istek alan sunucu) çökerse kalan 2 sunucudan birisini
+lider olarak seçebiliriz.</p>
+<blockquote>
+<p>Google File System, HDFS, RAMCloud gibi large-scale sistemler olası sunucu çökmelerinde sistemi ayakta
+tutabilmek için; çoğaltılmış durum makinelerini kullanarak lider seçimlerini yönetmekte ve 
+konfigürasyon bilgilerini kaydetmektedir.</p>
+</blockquote>
+<h2 id="raft-uzlasma-mekanizmas">RAFT Uzlaşma Mekanizması</h2>
+<p>Bir istemci lider sunucuya komut gönderdiğinde, lider bu komutu kendi ve 
+diğer takipçi sunucuların loglarına ekler ve komutun çalıştırılmaya uygun olduğuna
+karar verdiğinde tüm sunucuların durum makinelerine gönderir.</p>
+<h3 id="sunucu-rolleri">Sunucu Rolleri</h3>
+<p>RAFT algoritmasında uzlaşma aşaması öncelikle bir Lider(<strong>Leader</strong>) seçilerek başlar.
+Seçilen lider çoğaltılmış logların yönetilmesinden sorumludur.</p>
+<p>Sistemde bütün sunucular Takipçi(<strong>Follower</strong>) durumunda başlar.</p>
+<p>Liderden bir süre mesaj alamadığı zaman takipçiler Aday(<strong>Candidate</strong>) durumuna geçer 
+ve seçim başlatırlar. Oy çoğunluğuna sahip aday sunucu Lider olur ve
+diğer sunuculara yaşam(<strong>heartbeat</strong>) mesajları göndererek liderliğini belirtir.</p>
+<p>Liderden mesaj alan Aday sunucular Takipçi durumuna geri dönerler.</p>
+<p>Liderin çöktüğü ve yeni bir liderin seçildiği durumda eğer eski lider yeniden 
+ayağa kalkarsa, sistemde karışıklık olmaması için RAFT eski lideri bilgilendirir 
+ve takipçi durumuna döndürür.</p>
+<p><img alt="states" src="../assets/img/states.png" /></p>
+<h3 id="calsma-donemleri">Çalışma Dönemleri</h3>
+<p>Sunucuların durumlarını kontrol altında tutmak için RAFT zamanı dönemlere(<strong>term</strong>) böler.
+Dönemler artan sayılar şeklinde belirlenir.</p>
+<p>Dönemler seçimlerle birlikte değişir ve lider seçildiği dönem boyunca liderliğine devam eder.</p>
+<p>Seçimlerde birden fazla sunucu en fazla oyu alırsa o dönem lider seçilmeden biter ve yeniden seçim
+başlatılarak yeni bir döneme geçilir.</p>
+<p>Her sunucu o anki dönemini kayıtlı tutar ve bir sunucuyla haberleşirken paylaşır. Eğer bir sunucu daha yeni
+bir dönem numarasına sahip mesaj alırsa kendini yeni dönemle günceller. Eğer bu sunucu Aday veya Liderse doğrudan
+Takipçi durumuna geçer.</p>
+<p>Eğer eski bir döneme ait mesaj alınırsa bu mesaj reddedilir.  </p>
+<h3 id="rollerin-gorevleri">Rollerin Görevleri</h3>
+<h4 id="ortak-gorevler">Ortak Görevler</h4>
+<p>Tüm sunucular;</p>
+<ul>
+<li>Yeni bir log commit edilmişse bir sonraki komutu durum makinesinde çalıştırır.</li>
+<li>RPC isteğinde veya cevabındaki dönem değeri sunucunun döneminden büyükse, sunucu dönemini günceller ve
+Follower durumuna geçer.</li>
+</ul>
+<h4 id="follower">Follower</h4>
+<ul>
+<li>Liderden ve Adaylardan gelen tüm RPClere cevap verir.</li>
+<li>Beklenen süre içerisinde Liderden AppendEntries isteği gelmezse veya
+ bir sunucuya oy vermezse Aday konumuna geçer.</li>
+</ul>
+<h4 id="candidate">Candidate</h4>
+<ul>
+<li>Aday konumuna geçildiğinde seçim başlatır.<ul>
+<li>Güncel dönemi bir artırır.</li>
+<li>Kendine oy verir.</li>
+<li>Seçim sayacını resetler.</li>
+<li>Diğer tüm sunuculara RequestVote göndererek oy ister.</li>
+</ul>
+</li>
+<li>Sunucuların çoğundan oy alırsa Lider konumuna geçer.</li>
+<li>Eğer yeni Liderden AppendEntries mesajı gelirse Takipçi konumuna geçer.</li>
+<li>Eğer seçim sayacı biterse; yeni seçim başlatır.</li>
+</ul>
+<h4 id="leader">Leader</h4>
+<ul>
+<li>Seçim süresinde her bir sunucuya boş AppendEntries(heartbeat) mesajı gönder ve 
+yeni bir seçim başlamaması için kısa aralıklarla sürekli tekrar et.</li>
+<li>İstemciden komut gelirse; lokal loga kaydını ekle. Durum makinesine komut uygulandığında
+istemciye cevap ver.</li>
+<li>Her takipçi için; loglara yeni kayıt eklenmişse takipçinin son log indeksinden 
+itibaren bütün yeni kayıtları AppendEntries isteği ile gönder.<ul>
+<li>Başarılı bir şekilde Takipçiye kayıtlar eklenirse; Takipçinin <code>nextIndex</code> ve <code>matchIndex</code>
+bilgilerini güncelle.</li>
+<li>Kayıtlar eklenemezse; Log kayıtları uyuşmadığı için kayıtlar oluşturulamamıştır. <code>nextIndex</code>
+değerini bir azalt ve tekrar dene.</li>
+</ul>
+</li>
+<li>Loglarda <code>commitIndex</code>ten ve Takipçilerin çoğunluğunun <code>matchIndex</code>inden 
+daha büyük indekse sahip bir kayıt varsa ve bu kaydın dönemi güncel döneme eşitse
+<code>commitIndex</code>i bu kaydın indeksi ile güncelle.</li>
+</ul>
+<h3 id="haberlesme">Haberleşme</h3>
+<p>RAFT sunucuları RPC protokolü ile haberleşir ve temel uzlaşım algoritmasını 
+kurgulamak için sadece 2 tür RPC mesajı yeterlidir.</p>
+<p><strong>RequestVote</strong> adaylar tarafından, seçim sırasında diğer sunuculardan oy istemek için kullanılır.</p>
+<div class="codehilite"><pre><span></span><span class="kd">message</span> <span class="nc">RequestVote</span> <span class="p">{</span>
+  <span class="c1">// Adaya ait dönem numarası</span>
+  <span class="kt">int32</span> <span class="na">term</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>  
+
+  <span class="c1">// Aday numarası</span>
+  <span class="kt">int32</span> <span class="na">candidateId</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
+
+  <span class="c1">// Adayın en son logladığı komutun indexi</span>
+  <span class="kt">int32</span> <span class="na">lastLogIndex</span> <span class="o">=</span> <span class="mi">3</span><span class="p">;</span>
+
+  <span class="c1">// Adayın en son logladığı komutun dönemi</span>
+  <span class="kt">int32</span> <span class="na">lastLogTerm</span> <span class="o">=</span> <span class="mi">4</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kd">message</span> <span class="nc">RequestVoteReply</span> <span class="p">{</span>
+  <span class="c1">// Oy istenen sunucunun dönem numarası</span>
+  <span class="kt">int32</span> <span class="na">term</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>  
+
+  <span class="c1">// Aday oy alması durumunda True olur </span>
+  <span class="kt">bool</span> <span class="na">voteGranted</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>  
+<span class="p">}</span>
+</pre></div>
+
+
+<p><strong>AppendEntries</strong> lider tarafından log paylaşmak ve diğer sunuculara lider olduğunu belirtmek için kullanılır.</p>
+<div class="codehilite"><pre><span></span><span class="kd">message</span> <span class="nc">Entry</span> <span class="p">{</span>
+    <span class="c1">// Log kaydının girildiği dönem</span>
+    <span class="kt">int32</span> <span class="na">term</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+
+    <span class="c1">// Loglanan komut</span>
+    <span class="kt">int32</span> <span class="na">command</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kd">message</span> <span class="nc">AppendEntries</span> <span class="p">{</span>
+  <span class="c1">// Lidere ait dönem numarası</span>
+  <span class="kt">int32</span> <span class="na">term</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>  
+
+  <span class="c1">// Liderin idsi, takipçiye gelen bağlantıyı lidere yönlendirmek için</span>
+  <span class="kt">int32</span> <span class="na">leaderId</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>  
+
+  <span class="c1">// Yeni kayıtlardan önceki son kaydın indeksi</span>
+  <span class="kt">int32</span> <span class="na">prevLogIndex</span> <span class="o">=</span> <span class="mi">3</span><span class="p">;</span>  
+
+  <span class="c1">// prevLogIndexdeki kaydın dönem numarası</span>
+  <span class="kt">int32</span> <span class="na">prevLogTerm</span> <span class="o">=</span> <span class="mi">4</span><span class="p">;</span> 
+
+  <span class="c1">// Kaydedilecek log girdileri. Heartbeat mesajları için boş gönderilir.</span>
+  <span class="k">repeated</span> <span class="n">Entry</span> <span class="na">entries</span> <span class="o">=</span> <span class="mi">5</span><span class="p">;</span>
+
+  <span class="c1">// Liderin commitlediği son kaydın indeksi.</span>
+  <span class="kt">int32</span> <span class="na">leaderCommit</span> <span class="o">=</span> <span class="mi">6</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kd">message</span> <span class="nc">AppendEntriesReply</span> <span class="p">{</span>
+  <span class="c1">// Takipçinin o anki güncel dönemi</span>
+  <span class="kt">int32</span> <span class="na">term</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+
+  <span class="c1">// Eğer başarılı bir şekilde kayıtlar eklendiyse </span>
+  <span class="c1">//(prevLogIndex ve prevLogTerm değerleri eşleşiyorsa) True</span>
+  <span class="kt">bool</span> <span class="na">success</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<h3 id="sunucularda-saklanan-bilgiler">Sunucularda Saklanan Bilgiler</h3>
+<p>RAFT sunucularında tutulan bilgileri 3 kategoriye ayırabiliriz.</p>
+<h4 id="tum-sunucularda-kalc-olarak-saklanan-bilgiler">Tüm Sunucularda Kalıcı Olarak Saklanan Bilgiler</h4>
+<p>Bu bilgiler, her RPC cevabından önce sabit diskte güncellenir.</p>
+<ul>
+<li><strong>currentTerm</strong>: Sunucunun en güncel dönemi. <code>0</code>dan başlayıp monoton olarak artar.</li>
+<li><strong>votedFor</strong>: Dönem için sunucunun oy verdiği Adayın idsi.</li>
+<li><strong>log[]</strong>: Komut kayıtları. Durum makinesinde için oluşturulan komutları ve komutları kaydeden liderin dönemini içerir.</li>
+</ul>
+<h4 id="tum-sunucularda-degisken-bilgiler">Tüm Sunucularda Değişken Bilgiler</h4>
+<ul>
+<li><strong>commitIndex</strong>: Bilinen en son commit edilmiş log kaydının indeksi. <code>0</code>dan başlayıp monoton olarak artar.</li>
+<li><strong>lastApplied</strong>: En son uygulanan komutun log indeksi. <code>0</code>dan başlayıp monoton olarak artar.</li>
+</ul>
+<h4 id="lidere-ozgu-bilgiler">Lidere Özgü Bilgiler</h4>
+<p>Bu bilgiler her seçimden sonra yeniden tanımlanır.</p>
+<ul>
+<li><strong>nextIndex[]</strong>: Her sunucunun bir sonraki kaydı tutacağı log indeksi.</li>
+<li><strong>matchIndex[]</strong>: Her sunucunun kopyasını tutacağı bilinen en sonuncu kaydın indeksi. <code>0</code>dan başlayıp monoton olarak artar.</li>
+</ul>
+<div class="codehilite"><pre><span></span><span class="k">class</span> <span class="nc">Server</span><span class="p">:</span>
+    <span class="n">log</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Entry</span><span class="p">]</span>
+    <span class="n">currentTerm</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">votedFor</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">commitIndex</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">lastApplied</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="o">...</span>
+
+<span class="k">class</span> <span class="nc">Leader</span><span class="p">(</span><span class="n">Server</span><span class="p">):</span>
+    <span class="n">nextIndex</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>    
+    <span class="n">matchIndex</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
+    <span class="o">...</span>
+
+<span class="k">class</span> <span class="nc">Candidate</span><span class="p">(</span><span class="n">Server</span><span class="p">):</span>
+    <span class="o">...</span>
+
+<span class="k">class</span> <span class="nc">Follower</span><span class="p">(</span><span class="n">Server</span><span class="p">):</span>
+    <span class="o">...</span>
+</pre></div>
+                
+                  
+                
+              
+              
+                
+
+
+              
+            </article>
+          </div>
+        </div>
+      </main>
+      
+        
+<footer class="md-footer">
+  
+    <div class="md-footer-nav">
+      <nav class="md-footer-nav__inner md-grid">
+        
+          <a href=".." title="Home" class="md-flex md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+            <div class="md-flex__cell md-flex__cell--shrink">
+              <i class="md-icon md-icon--arrow-back md-footer-nav__button"></i>
+            </div>
+            <div class="md-flex__cell md-flex__cell--stretch md-footer-nav__title">
+              <span class="md-flex__ellipsis">
+                <span class="md-footer-nav__direction">
+                  Previous
+                </span>
+                Home
+              </span>
+            </div>
+          </a>
+        
+        
+      </nav>
+    </div>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-footer-copyright">
+        
+        powered by
+        <a href="https://www.mkdocs.org">MkDocs</a>
+        and
+        <a href="https://squidfunk.github.io/mkdocs-material/">
+          Material for MkDocs</a>
+      </div>
+      
+  <div class="md-footer-social">
+    <link rel="stylesheet" href="../assets/fonts/font-awesome.css">
+    
+      <a href="https://github.com/mgurdal" class="md-footer-social__link fa fa-github-alt"></a>
+    
+      <a href="https://twitter.com/mgurdal_" class="md-footer-social__link fa fa-twitter"></a>
+    
+      <a href="https://linkedin.com/in/mgurdal" class="md-footer-social__link fa fa-linkedin"></a>
+    
+  </div>
+
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    
+      <script src="../assets/javascripts/application.39abc4af.js"></script>
+      
+      <script>app.initialize({version:"1.0.4",url:{base:".."}})</script>
+      
+    
+  </body>
+</html>
