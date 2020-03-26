@@ -720,7 +720,7 @@ kurgulamak için sadece 2 tür RPC mesajı yeterlidir.</p>
 <li><strong>nextIndex[]</strong>: Her sunucunun bir sonraki kaydı tutacağı log indeksi.</li>
 <li><strong>matchIndex[]</strong>: Her sunucunun kopyasını tutacağı bilinen en sonuncu kaydın indeksi. <code>0</code>dan başlayıp monoton olarak artar.</li>
 </ul>
-<div class="codehilite"><pre><span></span><span class="k">class</span> <span class="nc">Server</span><span class="p">:</span>
+<div class="codehilite"><pre><span></span><span class="k">class</span> <span class="nc">State</span><span class="p">:</span>
     <span class="n">log</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Entry</span><span class="p">]</span>
     <span class="n">currentTerm</span><span class="p">:</span> <span class="nb">int</span>
     <span class="n">votedFor</span><span class="p">:</span> <span class="nb">int</span>
@@ -728,15 +728,15 @@ kurgulamak için sadece 2 tür RPC mesajı yeterlidir.</p>
     <span class="n">lastApplied</span><span class="p">:</span> <span class="nb">int</span>
     <span class="o">...</span>
 
-<span class="k">class</span> <span class="nc">Leader</span><span class="p">(</span><span class="n">Server</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">Leader</span><span class="p">(</span><span class="n">State</span><span class="p">):</span>
     <span class="n">nextIndex</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>    
     <span class="n">matchIndex</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
     <span class="o">...</span>
 
-<span class="k">class</span> <span class="nc">Candidate</span><span class="p">(</span><span class="n">Server</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">Candidate</span><span class="p">(</span><span class="n">State</span><span class="p">):</span>
     <span class="o">...</span>
 
-<span class="k">class</span> <span class="nc">Follower</span><span class="p">(</span><span class="n">Server</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">Follower</span><span class="p">(</span><span class="n">State</span><span class="p">):</span>
     <span class="o">...</span>
 </pre></div>
                 
