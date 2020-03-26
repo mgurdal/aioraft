@@ -1,0 +1,24 @@
+site_name: Aioraft
+site_description: Asyncronous python RAFT implementation
+site_author: Mehmet Gürdal
+site_url: https://mgurdal.github.io/aioraft
+
+
+nav:
+    - Home: index.md
+    - What is RAFT: terminology.md
+
+extra:
+  social:
+    - type: github-alt
+      link: https://github.com/mgurdal
+    - type: twitter
+      link: https://twitter.com/mgurdal_
+    - type: linkedin
+      link: https://linkedin.com/in/mgurdal
+
+theme:
+  name: 'material'
+
+markdown_extensions:
+  - codehilite
