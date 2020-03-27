@@ -144,7 +144,7 @@ itibaren bütün yeni kayıtları takipçiye gönder.
 
 ### Haberleşme
 
-RAFT sunucuları RPC protokolü ile haberleşir ve temel uzlaşım algoritmasını 
+RAFT sunucuları [RPC](https://en.wikipedia.org/wiki/Remote_procedure_call) protokolü ile haberleşir ve temel uzlaşım algoritmasını 
 kurgulamak için sadece 2 tür RPC mesajı yeterlidir.
 
 **RequestVote** adaylar tarafından, seçim sırasında diğer sunuculardan oy istemek için kullanılır.
