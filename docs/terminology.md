@@ -128,19 +128,19 @@ Follower durumuna geçer.
 
 #### Leader
 
-- Seçim süresinde her bir sunucuya boş AppendEntries(heartbeat) mesajı gönder ve 
-yeni bir seçim başlamaması için kısa aralıklarla sürekli tekrar et.
-- İstemciden komut gelirse; lokal loga kaydını ekle. Durum makinesine komut uygulandığında
-istemciye cevap ver.
-- Her takipçi için; loglara yeni kayıt eklenmişse takipçinin son log indeksinden 
-itibaren bütün yeni kayıtları AppendEntries isteği ile gönder.
-    - Başarılı bir şekilde Takipçiye kayıtlar eklenirse; Takipçinin `nextIndex` ve `matchIndex`
-    bilgilerini güncelle.
-    - Kayıtlar eklenemezse; Log kayıtları uyuşmadığı için kayıtlar oluşturulamamıştır. `nextIndex`
-    değerini bir azalt ve tekrar dene.
-- Loglarda `commitIndex`ten ve Takipçilerin çoğunluğunun `matchIndex`inden 
-daha büyük indekse sahip bir kayıt varsa ve bu kaydın dönemi güncel döneme eşitse
-`commitIndex`i bu kaydın indeksi ile güncelle.
+- Seçim süresinde her bir sunucuya boş AppendEntries(heartbeat) mesajı gönderir ve bunu 
+yeni bir seçimin başlamaması için kısa aralıklarla sürekli tekrar eder.
+- İstemciden komut gelirse; kendi loguna kaydını ekler. Durum makinesine komut uygulandıktan sonra
+istemciye cevap verir.
+- Her takipçi için; loglara yeni kayıt eklenmişse, takipçinin son log indeksinden 
+itibaren bütün yeni kayıtları takipçiye gönder.
+    - Başarılı bir şekilde Takipçiye kayıtlar eklenirse; Takipçinin indeks bilgilerini güncelle.
+    - Kayıtlar eklenemezse; Log kayıtları uyuşmadığı için kayıtlar oluşturulamamıştır. Takipçinin bilinen
+    indeks değerini bir azalt ve tekrar dene. Bu işlem sayesinde Takipçinin uyuşan en son kaydına kadar gidilip o kayıttan
+    itibaren tüm uyuşmayan kayıtları liderin kayıtlarıyla değiştirilir.
+- Kendi loglarında son commitlenen indeksten daha büyük bir indeks varsa ve
+ Takipçilerin çoğunda bu indekse sahip güncel bir kayıt varsa 
+ commit indeksini bu indeks ile günceller.
 
 ### Haberleşme
 
