@@ -696,7 +696,7 @@ itibaren tüm uyuşmayan kayıtları liderin kayıtlarıyla değiştirilir.</li>
  commit indeksini bu indeks ile günceller.</li>
 </ul>
 <h3 id="haberlesme">Haberleşme</h3>
-<p>RAFT sunucuları RPC protokolü ile haberleşir ve temel uzlaşım algoritmasını 
+<p>RAFT sunucuları <a href="https://en.wikipedia.org/wiki/Remote_procedure_call">RPC</a> protokolü ile haberleşir ve temel uzlaşım algoritmasını 
 kurgulamak için sadece 2 tür RPC mesajı yeterlidir.</p>
 <p><strong>RequestVote</strong> adaylar tarafından, seçim sırasında diğer sunuculardan oy istemek için kullanılır.</p>
 <div class="codehilite"><pre><span></span><span class="kd">message</span> <span class="nc">RequestVote</span> <span class="p">{</span>
