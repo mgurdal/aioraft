@@ -132,9 +132,8 @@ Follower durumuna geçer.
 yeni bir seçimin başlamaması için kısa aralıklarla sürekli tekrar eder.
 - İstemciden komut gelirse; kendi loguna kaydını ekler. Durum makinesine komut uygulandıktan sonra
 istemciye cevap verir.
-- Her takipçi için; loglara yeni kayıt eklenmişse, takipçinin son log indeksinden 
-itibaren bütün yeni kayıtları takipçiye gönder.
-    - Başarılı bir şekilde Takipçiye kayıtlar eklenirse; Takipçinin indeks bilgilerini güncelle.
+- Loglara yeni kayıt eklenmişse, her takipçiye bütün yeni kayıtları gönderir.
+    - Başarılı bir şekilde Takipçiye kayıtlar eklenirse; Takipçinin indeks bilgilerini günceller.
     - Kayıtlar eklenemezse; Log kayıtları uyuşmadığı için kayıtlar oluşturulamamıştır. Takipçinin bilinen
     indeks değerini bir azalt ve tekrar dene. Bu işlem sayesinde Takipçinin uyuşan en son kaydına kadar gidilip o kayıttan
     itibaren tüm uyuşmayan kayıtları liderin kayıtlarıyla değiştirilir.
