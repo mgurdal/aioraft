@@ -4,8 +4,6 @@ from datetime import datetime
 
 @dataclass
 class Message:
-    sender: "Server"
-    receiver: "Server"
     term: int
     delivered_at: datetime
     sent_at: datetime
@@ -13,6 +11,7 @@ class Message:
 
 @dataclass
 class AppendEntries(Message):
+    leader_id: int
     prev_index: int
     prev_term: int
     commit_index: int

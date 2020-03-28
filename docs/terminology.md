@@ -1,6 +1,6 @@
 # RAFT
 
-<img src="https://raft.github.io/logo/annie-solo.png" width="250px"/>
+<img src="https://github.com/raft/logo/raw/master/annie-solo.png" width="250px"/>
 
 RAFT, sunucular arasında uzlaşma(concensus) sağlayan bir algoritmadır.
  
@@ -127,6 +127,10 @@ Follower durumuna geçer.
 - Eğer seçim sayacı biterse; yeni seçim başlatır.
 
 #### Leader
+
+Raft, takipçileri liderin loglarını kopyalamaya zorlayarak uyuşmazlıkları engeller.
+Bu aynı zamanda takipçilerdeki çakışan kayıtların liderin kayıtlarıyla ezilmesi anlamına gelir.
+
 
 - Seçim süresinde her bir sunucuya boş AppendEntries(heartbeat) mesajı gönderir ve bunu 
 yeni bir seçimin başlamaması için kısa aralıklarla sürekli tekrar eder.
