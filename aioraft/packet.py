@@ -26,6 +26,7 @@ class AppendEntriesReply(Message):
 
 @dataclass
 class RequestVote(Message):
+    candidate_id: int
     last_log_index: int
     last_log_term: int
 
