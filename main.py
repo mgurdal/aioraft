@@ -9,7 +9,7 @@ logging.basicConfig(
 
 if __name__ == "__main__":
     config = {}
-    servers = [Server(addr=f"0.0.0.0:{port}") for port in range(5432, 5470)]
+    servers = [Server(id=f"0.0.0.0:{port}") for port in range(5432, 5470)]
 
     for idx, server in enumerate(servers):
         peers = servers[:idx] + servers[idx + 1 :]

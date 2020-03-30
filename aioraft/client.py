@@ -43,7 +43,7 @@ class Cluster:
                 setattr(state_machine, k, track(v))
 
         server = Server(id=self.config.addr, state_machine=state_machine)
-
+        server.add_peer(*self.config.peers)
         self.server = server
 
     def start(self):

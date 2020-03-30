@@ -1,3 +1,5 @@
+import grpc
+from protos import raft_pb2_grpc, raft_pb2
 
 from dataclasses import dataclass
 from typing import List
@@ -21,7 +23,13 @@ class Storage:
             "last_applied": None,
             "entries": [],
             "peers": {
-                peer: {"match_index": 0, "match_term": 0}
+                peer: {
+                    "match_index": 0,
+                    "match_term": 0,
+                    "client": raft_pb2_grpc.RaftServiceStub(
+                        grpc.insecure_channel(peer)
+                    )
+                }
                 for peer in config.peers
             }
         }

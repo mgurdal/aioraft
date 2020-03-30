@@ -156,7 +156,7 @@ class Candidate(State):
         """Try to get votes from all peers"""
         responses: List[RequestVoteReply] = [
             # todo: send with grcp client
-            self.server.send(
+            self.server.RequestVote(
                 RequestVote(
                     term=self.server.storage.current_term,
                     last_log_index=peer["match_index"],
@@ -200,7 +200,8 @@ class Follower(State):
     def __str__(self):
         return (
             f"[{self.__class__}] {self.server.id}\n"
-            f"Term: {self.server.storage.current_term} Commit Index: {self.server.storage.commit_index}"
+            f"Term: {self.server.storage.current_term} "
+            f"Commit Index: {self.server.storage.commit_index}"
         )
 
     def become_candidate(self):
