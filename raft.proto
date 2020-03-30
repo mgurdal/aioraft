@@ -75,9 +75,12 @@ message AppendEntriesResponse {
   // Takipçinin o anki güncel dönemi
   int32 term = 1;
 
+  // Followerde gözüken term indeksi
+  int32 matchIndex = 2;
+
   // Eğer başarılı bir şekilde kayıtlar eklendiyse
   //(prevLogIndex ve prevLogTerm değerleri eşleşiyorsa) True
-  bool success = 2;
+  bool success = 3;
 }
 
 

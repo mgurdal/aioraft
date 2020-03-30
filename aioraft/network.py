@@ -1,5 +1,4 @@
 import logging
-import uuid
 from datetime import datetime
 from typing import Union
 
@@ -29,14 +28,14 @@ class Peer:
         channel = grpc.insecure_channel(addr)
         self.client = raft_pb2_grpc.RaftServiceStub(channel)
 
-    def SendAppendEntries(self):
+    def SendAppendEntries(self, message: AppendEntries):
         req = raft_pb2.AppendEntriesRequest(
-            term=1,
-            leaderId=2,
-            prevLogIndex=3,
-            prevLogTerm=4,
-            entries=[],
-            leaderCommit=6,
+            term=message.term,
+            leaderId=message.leader_id,
+            prevLogIndex=message.prev_index,
+            prevLogTerm=message.prev_term,
+            entries=message.entries,
+            leaderCommit=message.commit_index,
         )
         response: AppendEntriesResponse = self.client.AppendEntries(req)
 
@@ -79,24 +78,27 @@ class Peer:
 
 
 class Server(RaftServiceServicer):
-    id: uuid.uuid4
+    addr: str
     log: dict  # (1, 1): []
     role: Union[Follower, Candidate, Leader]
     storage: Storage
     peers: set
     state_machine: object
+    client: raft_pb2_grpc.RaftServiceStub
 
-    def __init__(self, id, state_machine):
-        self.id = id
+    def __init__(self, addr, state_machine):
+        self.addr = addr
         self.role = Follower(self)
         self.state_machine = state_machine
         self.peers = set()
+        channel = grpc.insecure_channel(addr)
+        self.client = raft_pb2_grpc.RaftServiceStub(channel)
 
     def set_storage(self, storage: Storage):
         self.storage = storage
 
     def become(self, cls: Union["Follower", "Leader", "Candidate"]):
-        print(f"Server {self.id} became a {cls} from {self.role.__class__}")
+        print(f"Server {self.addr} became a {cls} from {self.role.__class__}")
         self.stop()
         self.role = cls(self)
         self.role.start()
@@ -149,7 +151,8 @@ class Server(RaftServiceServicer):
 
             return AppendEntriesResponse(
                 term=response.term,
-                success=response.success
+                success=response.success,
+                matchIndex=response.match_index
             )
         except Exception as e:
             logging.exception(e)

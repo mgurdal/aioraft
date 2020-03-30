@@ -3,7 +3,7 @@ from abc import abstractmethod
 from datetime import datetime
 from typing import List, Optional
 
-from aioraft.network import Server
+from aioraft.network import Server, Peer
 from aioraft.packet import (
     AppendEntries,
     AppendEntriesReply,
@@ -83,31 +83,30 @@ class Leader(State):
         self.heartbeat.stop()
         self.resignation_timer.stop()
 
-    def append_entries(self, target: "Follower" = None):
+    def append_entries(self, target: Peer = None):
         broadcast = [peer.server for peer in self.server.peers]
-        targets = [target.server] if target else broadcast
+        targets = [target] if target else broadcast
 
         responses = []
         for target in targets:
-            if self.server.storage.match_index(target.id) > 0:
+            if self.server.storage.match_index(target.addr) > 0:
                 prev_term = self.server.storage.match_term(target)
             else:
                 prev_term = None
 
             e = AppendEntries(
-                leader_id=self.server.id,
+                leader_id=self.server.addr,
                 term=self.server.storage.current_term,
                 sent_at=datetime.now(),
                 delivered_at=None,
                 commit_index=self.server.storage.commit_index,
                 entries=[], # todo: populate entries
-                prev_index=self.server.storage.match_index(target.id) - 1,
+                prev_index=self.server.storage.match_index(target.addr) - 1,
                 prev_term=prev_term,
             )
 
-            self.server.storage.update_peer(target.id)
-            # todo: send with grpc client
-            response: AppendEntriesReply = self.server.send(e)
+            self.server.storage.update_peer(target.addr)
+            response: AppendEntriesReply = target.SendAppendEntries(e)
             responses.append(response)
 
         successful_responses = [r for r in responses if r.success]
@@ -116,7 +115,7 @@ class Leader(State):
         )
         if could_reach_to_majority:
             logging.debug(
-                f"{self.server.id} maintained leadership {len(successful_responses)}/{len(self.server.peers)}"
+                f"{self.server.addr} maintained leadership {len(successful_responses)}/{len(self.server.peers)}"
             )
             self.resignation_timer.reset()
 
@@ -125,7 +124,7 @@ class Leader(State):
             self.become_follower()
 
     def send_heartbeat(self):
-        logging.debug(f"{self.server.id} sending heartbeats")
+        logging.debug(f"{self.server.addr} sending heartbeats")
         self.append_entries()
 
 
@@ -141,7 +140,7 @@ class Candidate(State):
 
     def start(self):
         self.server.storage.current_term += 1
-        self.server.storage.voted_for = self.server.id
+        self.server.storage.voted_for = self.server.addr
 
         self.request_vote()
         self.election_timer.start()
@@ -155,15 +154,14 @@ class Candidate(State):
     def request_vote(self):
         """Try to get votes from all peers"""
         responses: List[RequestVoteReply] = [
-            # todo: send with grcp client
-            self.server.RequestVote(
+            peer.SendRequestVote(
                 RequestVote(
                     term=self.server.storage.current_term,
                     last_log_index=peer["match_index"],
                     last_log_term=peer["match_term"],
                     delivered_at=None,
                     sent_at=datetime.now(),
-                    candidate_id=self.server.id
+                    candidate_id=self.server.addr
                 )
             )
             for peer in self.server.storage.peers
@@ -172,7 +170,7 @@ class Candidate(State):
         # become leader if granted by majority
         granted_votes = len([vote for vote in responses if vote.granted]) + 1
         granted_by_majority = granted_votes > len(self.server.storage.peers) // 2
-        logging.debug(f"{self.server.id} got vote from {len(responses)} servers")
+        logging.debug(f"{self.server.addr} got vote from {len(responses)} servers")
         if granted_by_majority:
             self.server.become(Leader)
 
@@ -191,7 +189,7 @@ class Follower(State):
         self.election_timer = Timer(ELECTION_INTERVAL, self.become_candidate)
 
     def start(self):
-        logging.debug(f"Starting follower {self.server.id}")
+        logging.debug(f"Starting follower {self.server.addr}")
         self.election_timer.start()
 
     def stop(self):
@@ -199,13 +197,13 @@ class Follower(State):
 
     def __str__(self):
         return (
-            f"[{self.__class__}] {self.server.id}\n"
+            f"[{self.__class__}] {self.server.addr}\n"
             f"Term: {self.server.storage.current_term} "
             f"Commit Index: {self.server.storage.commit_index}"
         )
 
     def become_candidate(self):
-        logging.debug(f"{self.server.id} starting an election")
+        logging.debug(f"{self.server.addr} starting an election")
         self.server.become(Candidate)
 
     def on_append_entries(self, message: AppendEntries) -> AppendEntriesReply:
@@ -230,7 +228,7 @@ class Follower(State):
         if next_index < last_log_index:
             if self.server.storage.term_at(next_index) != message.term or (last_log_index != message.prev_index):
                 logging.debug(
-                    f"{self.server.id} shrunk to {next_index}"
+                    f"{self.server.addr} shrunk to {next_index}"
                 )
                 self.server.storage.cut_from(next_index)
 

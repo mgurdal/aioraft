@@ -18,7 +18,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='',
   syntax='proto3',
   serialized_options=None,
-  serialized_pb=b'\n\nraft.proto\"b\n\x12RequestVoteRequest\x12\x0c\n\x04term\x18\x01 \x01(\x05\x12\x13\n\x0b\x63\x61ndidateId\x18\x02 \x01(\x05\x12\x14\n\x0clastLogIndex\x18\x03 \x01(\x05\x12\x13\n\x0blastLogTerm\x18\x04 \x01(\x05\"8\n\x13RequestVoteResponse\x12\x0c\n\x04term\x18\x01 \x01(\x05\x12\x13\n\x0bvoteGranted\x18\x02 \x01(\x08\"J\n\x05\x45ntry\x12\r\n\x05index\x18\x01 \x01(\x04\x12\x0c\n\x04term\x18\x02 \x01(\x04\x12\x13\n\x0b\x63ommandName\x18\x03 \x01(\t\x12\x0f\n\x07\x63ommand\x18\x04 \x01(\x0c\"\x90\x01\n\x14\x41ppendEntriesRequest\x12\x0c\n\x04term\x18\x01 \x01(\x05\x12\x10\n\x08leaderId\x18\x02 \x01(\x05\x12\x14\n\x0cprevLogIndex\x18\x03 \x01(\x05\x12\x13\n\x0bprevLogTerm\x18\x04 \x01(\x05\x12\x17\n\x07\x65ntries\x18\x05 \x03(\x0b\x32\x06.Entry\x12\x14\n\x0cleaderCommit\x18\x06 \x01(\x05\"6\n\x15\x41ppendEntriesResponse\x12\x0c\n\x04term\x18\x01 \x01(\x05\x12\x0f\n\x07success\x18\x02 \x01(\x08\x32\x8b\x01\n\x0bRaftService\x12@\n\rAppendEntries\x12\x15.AppendEntriesRequest\x1a\x16.AppendEntriesResponse\"\x00\x12:\n\x0bRequestVote\x12\x13.RequestVoteRequest\x1a\x14.RequestVoteResponse\"\x00\x62\x06proto3'
+  serialized_pb=b'\n\nraft.proto\"b\n\x12RequestVoteRequest\x12\x0c\n\x04term\x18\x01 \x01(\x05\x12\x13\n\x0b\x63\x61ndidateId\x18\x02 \x01(\x05\x12\x14\n\x0clastLogIndex\x18\x03 \x01(\x05\x12\x13\n\x0blastLogTerm\x18\x04 \x01(\x05\"8\n\x13RequestVoteResponse\x12\x0c\n\x04term\x18\x01 \x01(\x05\x12\x13\n\x0bvoteGranted\x18\x02 \x01(\x08\"J\n\x05\x45ntry\x12\r\n\x05index\x18\x01 \x01(\x04\x12\x0c\n\x04term\x18\x02 \x01(\x04\x12\x13\n\x0b\x63ommandName\x18\x03 \x01(\t\x12\x0f\n\x07\x63ommand\x18\x04 \x01(\x0c\"\x90\x01\n\x14\x41ppendEntriesRequest\x12\x0c\n\x04term\x18\x01 \x01(\x05\x12\x10\n\x08leaderId\x18\x02 \x01(\x05\x12\x14\n\x0cprevLogIndex\x18\x03 \x01(\x05\x12\x13\n\x0bprevLogTerm\x18\x04 \x01(\x05\x12\x17\n\x07\x65ntries\x18\x05 \x03(\x0b\x32\x06.Entry\x12\x14\n\x0cleaderCommit\x18\x06 \x01(\x05\"J\n\x15\x41ppendEntriesResponse\x12\x0c\n\x04term\x18\x01 \x01(\x05\x12\x12\n\nmatchIndex\x18\x02 \x01(\x05\x12\x0f\n\x07success\x18\x03 \x01(\x08\x32\x8b\x01\n\x0bRaftService\x12@\n\rAppendEntries\x12\x15.AppendEntriesRequest\x1a\x16.AppendEntriesResponse\"\x00\x12:\n\x0bRequestVote\x12\x13.RequestVoteRequest\x1a\x14.RequestVoteResponse\"\x00\x62\x06proto3'
 )
 
 
@@ -247,8 +247,15 @@ _APPENDENTRIESRESPONSE = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='success', full_name='AppendEntriesResponse.success', index=1,
-      number=2, type=8, cpp_type=7, label=1,
+      name='matchIndex', full_name='AppendEntriesResponse.matchIndex', index=1,
+      number=2, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='success', full_name='AppendEntriesResponse.success', index=2,
+      number=3, type=8, cpp_type=7, label=1,
       has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -266,7 +273,7 @@ _APPENDENTRIESRESPONSE = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=395,
-  serialized_end=449,
+  serialized_end=469,
 )
 
 _APPENDENTRIESREQUEST.fields_by_name['entries'].message_type = _ENTRY
@@ -320,8 +327,8 @@ _RAFTSERVICE = _descriptor.ServiceDescriptor(
   file=DESCRIPTOR,
   index=0,
   serialized_options=None,
-  serialized_start=452,
-  serialized_end=591,
+  serialized_start=472,
+  serialized_end=611,
   methods=[
   _descriptor.MethodDescriptor(
     name='AppendEntries',
