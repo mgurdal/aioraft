@@ -1,22 +1,26 @@
-import asyncio
 import logging
+import aioraft
 
-from aioraft.network import Server
 
 logging.basicConfig(
     format="%(asctime)s - %(levelname)s - %(message)s", level=logging.DEBUG
 )
 
+class Storage:
+    disk = {}
+
+    def put(self, key, value):
+        self.disk[key] = value
+
+    def get(self, key):
+        return self.disk[key]
+
+
 if __name__ == "__main__":
-    config = {}
-    servers = [Server(id=f"0.0.0.0:{port}") for port in range(5432, 5470)]
-
-    for idx, server in enumerate(servers):
-        peers = servers[:idx] + servers[idx + 1 :]
-        server.add_peer(*peers)
-
-    for server in servers:
-        server.start()
-
-    l = asyncio.get_event_loop()
-    l.run_forever()
+    config = aioraft.Config(
+        addr="[::]:50051",
+        peers=["0.0.0.0:6543", "0.0.0.0:6544"]
+    )
+    consensus = aioraft.Cluster(config)
+    consensus.register(Storage)
+    consensus.start()

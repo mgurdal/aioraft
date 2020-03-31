@@ -42,18 +42,18 @@ class Cluster:
             if callable(v):
                 setattr(state_machine, k, track(v))
 
-        server = Server(id=self.config.addr, state_machine=state_machine)
-        server.add_peer(*self.config.peers)
+        server = Server(addr=self.config.addr, state_machine=state_machine)
         self.server = server
 
     def start(self):
-        with Storage(self.config) as storage:
-            self.server.set_storage(storage)
-            raft_pb2_grpc.add_RaftServiceServicer_to_server(
-                self.server, self._grpc_server
-            )
-            self._grpc_server.add_insecure_port(self.config.addr)
-            print("Starting at", self.config.addr)
+        storage = Storage(self.config)
+        self.server.set_storage(storage)
+        self.server.add_peer(*self.config.peers)
+        raft_pb2_grpc.add_RaftServiceServicer_to_server(
+            self.server, self._grpc_server
+        )
+        self._grpc_server.add_insecure_port(self.config.addr)
+        print("Starting at", self.config.addr)
 
-            self._grpc_server.start()
-            self._grpc_server.wait_for_termination()
+        self._grpc_server.start()
+        self._grpc_server.wait_for_termination()

@@ -3,7 +3,6 @@ from abc import abstractmethod
 from datetime import datetime
 from typing import List, Optional
 
-from aioraft.network import Server, Peer
 from aioraft.packet import (
     AppendEntries,
     AppendEntriesReply,
@@ -33,7 +32,7 @@ class State:
     votedFor: int
     commitIndex: int
     lastApplied: int
-    server: Server
+    server: 'Server'
 
     def on_request_vote(self, message: RequestVote) -> RequestVoteReply:
         current_term = self.server.storage.current_term
@@ -83,7 +82,7 @@ class Leader(State):
         self.heartbeat.stop()
         self.resignation_timer.stop()
 
-    def append_entries(self, target: Peer = None):
+    def append_entries(self, target: 'Peer' = None):
         broadcast = [peer.server for peer in self.server.peers]
         targets = [target] if target else broadcast
 
