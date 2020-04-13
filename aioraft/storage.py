@@ -19,7 +19,7 @@ class Storage:
             "index": 0,
             "term": 0,
             "voted_for": None,
-            "commit_index": None,
+            "commit_index": 0,
             "last_applied": None,
             "entries": [],
             "peers": {
@@ -28,10 +28,10 @@ class Storage:
                     "match_term": 0,
                     "client": raft_pb2_grpc.RaftServiceStub(
                         grpc.insecure_channel(peer)
-                    )
+                    ),
                 }
                 for peer in config.peers
-            }
+            },
         }
 
     @property

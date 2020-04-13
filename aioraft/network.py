@@ -4,8 +4,13 @@ from typing import Union
 
 import grpc
 
-from aioraft.packet import AppendEntries, Message, RequestVote, \
-    AppendEntriesReply, RequestVoteReply
+from aioraft.packet import (
+    AppendEntries,
+    Message,
+    RequestVote,
+    AppendEntriesReply,
+    RequestVoteReply,
+)
 from aioraft.state import Candidate, Follower, Leader
 from aioraft.storage import Storage
 from protos import raft_pb2_grpc, raft_pb2
@@ -28,7 +33,16 @@ class Peer:
         channel = grpc.insecure_channel(addr)
         self.client = raft_pb2_grpc.RaftServiceStub(channel)
 
+    @property
+    def match_index(self):
+        return self.storage.match_index(self.addr)
+
+    @property
+    def match_term(self):
+        return self.storage.match_term(self.addr)
+
     def SendAppendEntries(self, message: AppendEntries):
+        logging.error(message)
         req = raft_pb2.AppendEntriesRequest(
             term=message.term,
             leaderId=message.leader_id,
@@ -41,11 +55,11 @@ class Peer:
 
         return AppendEntriesReply(
             term=response.term,
-            sent_at=datetime.now(),
+            sent_at=None,
             delivered_at=None,
             success=response.success,
             # todo: fill match_index
-            match_index=None
+            match_index=0,
         )
 
     def SendRequestVote(self, message: RequestVote) -> RequestVoteReply:
@@ -53,7 +67,7 @@ class Peer:
             term=message.term,
             candidateId=message.candidate_id,
             lastLogIndex=message.last_log_index,
-            lastLogTerm=message.last_log_term
+            lastLogTerm=message.last_log_term,
         )
         response: RequestVoteResponse = self.client.RequestVote(req)
 
@@ -65,10 +79,7 @@ class Peer:
         )
 
     def __str__(self):
-        return (
-            f"{self.addr}"
-            f"{self.rpc_due} {self.heartbeat_due}"
-        )
+        return f"{self.addr}" f"{self.rpc_due} {self.heartbeat_due}"
 
     def __hash__(self):
         return hash(self.addr)
@@ -111,9 +122,7 @@ class Server(RaftServiceServicer):
 
     def add_peer(self, *servers: str):
         for server in servers:
-            self.peers.add(
-                Peer(addr=server, storage=self.storage)
-            )
+            self.peers.add(Peer(addr=server, storage=self.storage))
 
     async def validate_term(self, message: "Message"):
         current_term = self.storage.current_term
@@ -124,8 +133,9 @@ class Server(RaftServiceServicer):
 
         message.delivered_at = datetime.now()
 
-    def OnAppendEntries(self, request: AppendEntriesRequest,
-                        context) -> AppendEntriesResponse:
+    def AppendEntries(
+        self, request: AppendEntriesRequest, context
+    ) -> AppendEntriesResponse:
         """AppendEntries performs a single append entries request / response.
         :param request: AppendEntriesRequest(
             term=1,
@@ -136,15 +146,18 @@ class Server(RaftServiceServicer):
             leaderCommit=6,
         )
         """
+        """
+        AppendEntries(term=1, delivered_at=None, sent_at=None, leader_id=944, prev_index=-1, prev_term=None, commit_index=None, entries=[])
+        """
         message = AppendEntries(
             term=request.term,
             prev_index=request.prevLogIndex,
             prev_term=request.prevLogTerm,
             entries=request.entries,
             commit_index=request.leaderCommit,
-            delivered_at=datetime.now(),
+            delivered_at=None,
             leader_id=request.leaderId,
-            sent_at=None
+            sent_at=None,
         )
         try:
             response: AppendEntriesReply = self.role.on_append_entries(message)
@@ -152,7 +165,7 @@ class Server(RaftServiceServicer):
             return AppendEntriesResponse(
                 term=response.term,
                 success=response.success,
-                matchIndex=response.match_index
+                matchIndex=response.match_index,
             )
         except Exception as e:
             logging.exception(e)
@@ -166,10 +179,7 @@ class Server(RaftServiceServicer):
             last_log_index=request.lastLogIndex,
             last_log_term=request.lastLogTerm,
             sent_at=None,
-            delivered_at=datetime.now()
+            delivered_at=None,
         )
         vote: RequestVoteReply = self.role.on_request_vote(message)
-        return RequestVoteResponse(
-            term=vote.term,
-            voteGranted=vote.granted
-        )
+        return RequestVoteResponse(term=vote.term, voteGranted=vote.granted)

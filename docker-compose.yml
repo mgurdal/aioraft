@@ -1,0 +1,19 @@
+version: 3
+services:
+  node_1:
+    build: .
+    command: python main.py 0.0.0.0:50051 node_2:50052 node_3:50053
+    ports:
+      - "50051:50051"
+
+  node_2:
+    build: .
+    command: python main.py 0.0.0.0:50051 node_1:50052 node_3:50053
+    ports:
+      - "50051:50051"
+
+  node_3:
+    build: .
+    command: python main.py 0.0.0.0:50051 node_1:50052 node_2:50053
+    ports:
+      - "50051:50051"

@@ -1,10 +1,13 @@
 import logging
+import argparse
+
 import aioraft
 
 
 logging.basicConfig(
     format="%(asctime)s - %(levelname)s - %(message)s", level=logging.DEBUG
 )
+
 
 class Storage:
     disk = {}
@@ -17,9 +20,15 @@ class Storage:
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Raft node arguments')
+    parser.add_argument('addr', metavar='addr', type=str, help='node addr')
+    parser.add_argument('peers', metavar='peers', type=str, nargs='+', help='peers')
+
+    args = parser.parse_args()
+    
     config = aioraft.Config(
-        addr="[::]:50051",
-        peers=["0.0.0.0:6543", "0.0.0.0:6544"]
+        addr=str(args.addr),  # [::]:50051
+        peers=args.peers
     )
     consensus = aioraft.Cluster(config)
     consensus.register(Storage)

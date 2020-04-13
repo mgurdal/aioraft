@@ -1,4 +1,6 @@
 import functools
+import asyncio
+import logging
 from concurrent import futures
 from dataclasses import dataclass
 
@@ -19,6 +21,7 @@ def track(command):
         print("Replicating", command, "with", args, kwargs)
         # Replicate state machine
         return command(*args, **kwargs)
+
     return wrapper
 
 
@@ -49,11 +52,10 @@ class Cluster:
         storage = Storage(self.config)
         self.server.set_storage(storage)
         self.server.add_peer(*self.config.peers)
-        raft_pb2_grpc.add_RaftServiceServicer_to_server(
-            self.server, self._grpc_server
-        )
+        raft_pb2_grpc.add_RaftServiceServicer_to_server(self.server, self._grpc_server)
         self._grpc_server.add_insecure_port(self.config.addr)
-        print("Starting at", self.config.addr)
+        logging.info(f"Starting at {self.config.addr}")
 
+        self.server.start()
         self._grpc_server.start()
-        self._grpc_server.wait_for_termination()
+        asyncio.get_event_loop().run_forever()
