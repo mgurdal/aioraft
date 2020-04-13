@@ -9,10 +9,12 @@ from protos import raft_pb2_grpc
 
 import grpc
 
+import json
+
 from aioraft.network import Server
 
 
-def track(command):
+def track(cluster, command):
     """Tracks given command and replicates in cluster"""
     print("Tracking", command)
 
@@ -20,6 +22,9 @@ def track(command):
     def wrapper(*args, **kwargs):
         print("Replicating", command, "with", args, kwargs)
         # Replicate state machine
+        logging.critical(cluster.server.storage.entries)
+        value = json.dumps({"args": args[1:], "kwargs": kwargs})
+        cluster.server.apply_command(command.__name__, value)
         return command(*args, **kwargs)
 
     return wrapper
@@ -43,7 +48,7 @@ class Cluster:
 
         for k, v in vars(state_machine).items():
             if callable(v):
-                setattr(state_machine, k, track(v))
+                setattr(state_machine, k, track(self, v))
 
         server = Server(addr=self.config.addr, state_machine=state_machine)
         self.server = server
@@ -58,4 +63,3 @@ class Cluster:
 
         self.server.start()
         self._grpc_server.start()
-        asyncio.get_event_loop().run_forever()

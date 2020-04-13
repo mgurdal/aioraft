@@ -24,7 +24,7 @@ class Storage:
             "entries": [],
             "peers": {
                 peer: {
-                    "match_index": 0,
+                    "match_index": 1,
                     "match_term": 0,
                     "client": raft_pb2_grpc.RaftServiceStub(
                         grpc.insecure_channel(peer)
@@ -36,15 +36,13 @@ class Storage:
 
     @property
     def current_term(self) -> int:
-        return self.disk["term"]
+        if self.disk["entries"]:
+            return self.disk["entries"][-1].term
+        return 0
 
     @property
     def current_index(self) -> int:
         return len(self.disk["entries"])
-
-    @current_term.setter
-    def current_term(self, term: int):
-        self.disk["term"] = term
 
     @property
     def voted_for(self) -> int:
@@ -90,7 +88,9 @@ class Storage:
         self.disk["peers"][target]["match_term"] = self.current_term
 
     def term_at(self, index):
-        return self.disk["entries"][index]
+        if len(self.disk["entries"]) > index:
+            return self.disk["entries"][index]
+        return 0
 
     def cut_from(self, index):
         self.disk["entries"][:] = self.disk["entries"][index:]
@@ -102,6 +102,9 @@ class Storage:
     @property
     def entries(self) -> List[Entry]:
         return self.disk["entries"]
+
+    def new_entries(self, target) -> List[Entry]:
+        return self.disk["entries"][target.match_index:self.current_index]
 
     def append(self, entry: Entry):
         self.disk["entries"].append(entry)

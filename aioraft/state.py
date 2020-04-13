@@ -10,6 +10,7 @@ from aioraft.packet import (
     RequestVoteReply,
 )
 from aioraft.scheduler import Timer
+from aioraft.storage import Entry
 
 # FOLLOWER is passive but expects regular heartbeats to not become a CANDIDATE
 FOLLOWER = "follower"
@@ -83,15 +84,15 @@ class Leader(State):
 
     def append_entries(self, target: "Peer" = None):
         targets = [target] if target else self.server.peers
-
+        
         responses = []
         for target in targets:
             if self.server.storage.match_index(target.addr) > 0:
                 prev_term = self.server.storage.match_term(target)
             else:
                 prev_term = 0
-
-            e = AppendEntries(
+            
+            message = AppendEntries(
                 leader_id=id(self)%1000,
                 term=self.server.storage.current_term,
                 sent_at=None,
@@ -102,10 +103,10 @@ class Leader(State):
                 prev_term=prev_term,
             )
 
-            self.server.storage.update_peer(target.addr)
-            response: AppendEntriesReply = target.SendAppendEntries(e)
+            self.server.storage.update_peer(target)
+            response: AppendEntriesReply = target.SendAppendEntries(message)
             responses.append(response)
-
+            
         successful_responses = [r for r in responses if r.success]
         could_reach_to_majority = (
             len(successful_responses) >= len(self.server.storage.peers) // 2
@@ -136,7 +137,14 @@ class Candidate(State):
         self.election_timer = Timer(ELECTION_INTERVAL, self.become_follower)
 
     def start(self):
-        self.server.storage.current_term += 1
+        last_term = self.server.storage.current_index
+        self.server.storage.append(
+            Entry(
+                term=last_term+1,
+                command_name="candidate",
+                command=b"6"
+            )
+        )
         self.server.storage.voted_for = self.server.addr
 
         self.request_vote()
@@ -183,7 +191,6 @@ class Follower(State):
 
     def __init__(self, server: "Server"):
         self.server = server
-        logging.error(f"Follower {server}")
         self.election_timer = Timer(ELECTION_INTERVAL, self.become_candidate)
 
     def start(self):
@@ -209,7 +216,6 @@ class Follower(State):
         last_log_index = self.server.storage.current_index
         # reach to a prev log index and check terms
         # check previous index and term
-        logging.critical(message)
         if message.prev_index > last_log_index or (
             message.prev_term
             and self.server.storage.term_at(message.prev_index) != message.prev_term
@@ -235,7 +241,7 @@ class Follower(State):
         for entry in message.entries:
             self.server.storage.append(entry)
 
-        self.server.storage.current_term = message.term
+        # self.server.storage.current_term = message.term
 
         if self.server.storage.commit_index < message.commit_index:
             self.server.storage.commit_index = min(

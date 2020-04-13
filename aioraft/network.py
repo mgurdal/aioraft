@@ -12,7 +12,7 @@ from aioraft.packet import (
     RequestVoteReply,
 )
 from aioraft.state import Candidate, Follower, Leader
-from aioraft.storage import Storage
+from aioraft.storage import Storage, Entry
 from protos import raft_pb2_grpc, raft_pb2
 from protos.raft_pb2_grpc import RaftServiceServicer
 
@@ -42,7 +42,6 @@ class Peer:
         return self.storage.match_term(self.addr)
 
     def SendAppendEntries(self, message: AppendEntries):
-        logging.error(message)
         req = raft_pb2.AppendEntriesRequest(
             term=message.term,
             leaderId=message.leader_id,
@@ -52,7 +51,6 @@ class Peer:
             leaderCommit=message.commit_index,
         )
         response: AppendEntriesResponse = self.client.AppendEntries(req)
-
         return AppendEntriesReply(
             term=response.term,
             sent_at=None,
@@ -85,7 +83,7 @@ class Peer:
         return hash(self.addr)
 
     def __eq__(self, other: "Peer"):
-        return self.addr == other.addr
+        return self.addr == other
 
 
 class Server(RaftServiceServicer):
@@ -113,6 +111,15 @@ class Server(RaftServiceServicer):
         self.stop()
         self.role = cls(self)
         self.role.start()
+
+    def apply_command(self, command_name, value):
+        self.storage.append(
+            Entry(
+                term=self.storage.current_term,
+                command_name=command_name,
+                command=value.encode()
+            )
+        )
 
     def start(self):
         self.role.start()
@@ -161,7 +168,6 @@ class Server(RaftServiceServicer):
         )
         try:
             response: AppendEntriesReply = self.role.on_append_entries(message)
-
             return AppendEntriesResponse(
                 term=response.term,
                 success=response.success,
