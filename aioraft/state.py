@@ -24,15 +24,11 @@ CANDIDATE = "candidate"
 # to the followers in order to maintain the leadership
 LEADER = "leader"
 
-DEFAULT_TIMEOUT = 1  # seconds
-ELECTION_INTERVAL = 5  # seconds
+DEFAULT_TIMEOUT = 5  # seconds
+ELECTION_INTERVAL = 6  # seconds
 
 
 class State:
-    term: int
-    votedFor: int
-    commitIndex: int
-    lastApplied: int
     server: "Server"
 
     def on_request_vote(self, message: RequestVote) -> RequestVoteReply:
@@ -86,6 +82,7 @@ class Leader(State):
         targets = [target] if target else self.server.peers
         
         responses = []
+
         for target in targets:
             if self.server.storage.match_index(target.addr) > 0:
                 prev_term = self.server.storage.match_term(target)
@@ -98,23 +95,30 @@ class Leader(State):
                 sent_at=None,
                 delivered_at=None,
                 commit_index=self.server.storage.commit_index,
-                entries=[],  # todo: populate entries
+                # todo: ?
+                entries=self.server.storage.new_entries(target),
                 prev_index=self.server.storage.match_index(target.addr) - 1,
                 prev_term=prev_term,
             )
-
-            self.server.storage.update_peer(target)
+            logging.info(message)
             response: AppendEntriesReply = target.SendAppendEntries(message)
-            responses.append(response)
             
-        successful_responses = [r for r in responses if r.success]
-        could_reach_to_majority = (
-            len(successful_responses) >= len(self.server.storage.peers) // 2
-        )
-        if could_reach_to_majority:
-            logging.debug(
-                f"{self.server.addr} maintained leadership {len(successful_responses)}/{len(self.server.peers)}"
-            )
+            # TODO: maybe later?
+            if response.success:
+                self.server.storage.update_peer(target)
+
+        matches = [p.match_index for p in targets]
+        commited = sorted(matches)[len(matches)//2]
+        if commited > self.server.storage.commit_index:
+            if len(self.server.storage.entries)-1 < commited:
+                commit_term = 1
+            else:
+                commit_term = self.server.storage.entries[commited].term
+            if commit_term == self.server.storage.current_term:
+                for e in self.server.storage.entries[self.server.storage.commit_index:commited]:
+                    self.server.apply(e)
+            self.server.storage.commit_index = commited
+            logging.debug(f"New commit index: {commited}")
             self.resignation_timer.reset()
 
     def on_append_entries(self, message: AppendEntries) -> AppendEntriesReply:
@@ -122,29 +126,20 @@ class Leader(State):
             self.become_follower()
 
     def send_heartbeat(self):
-        logging.error(f"{self.server.addr} sending heartbeats")
+        logging.debug(f"{self.server.addr} sending heartbeats")
         self.append_entries()
 
 
 class Candidate(State):
-
     server: "Server"
     election_timer: Timer
-    log: List[int]  # holds terms
 
     def __init__(self, server: "Server"):
         self.server = server
         self.election_timer = Timer(ELECTION_INTERVAL, self.become_follower)
 
     def start(self):
-        last_term = self.server.storage.current_index
-        self.server.storage.append(
-            Entry(
-                term=last_term+1,
-                command_name="candidate",
-                command=b"6"
-            )
-        )
+        self.server.storage.current_term += 1
         self.server.storage.voted_for = self.server.addr
 
         self.request_vote()
@@ -171,11 +166,10 @@ class Candidate(State):
             )
             for peer in self.server.peers
         ]
-
         # become leader if granted by majority
         granted_votes = len([vote for vote in responses if vote.granted]) + 1
         granted_by_majority = granted_votes > len(self.server.storage.peers) // 2
-        logging.debug(f"{self.server.addr} got vote from {len(responses)} servers")
+        logging.debug(f"{self.server.addr} got vote from {granted_votes}/{len(responses)+1} servers")
         if granted_by_majority:
             self.server.become(Leader)
 
@@ -216,6 +210,9 @@ class Follower(State):
         last_log_index = self.server.storage.current_index
         # reach to a prev log index and check terms
         # check previous index and term
+        logging.info(f"Log index: Leader: {message.prev_index} Follower: {last_log_index}")
+        logging.info(f"Log term: Leader: {message.prev_term} Follower: {self.server.storage.term_at(message.prev_index)}")
+
         if message.prev_index > last_log_index or (
             message.prev_term
             and self.server.storage.term_at(message.prev_index) != message.prev_term
@@ -241,13 +238,11 @@ class Follower(State):
         for entry in message.entries:
             self.server.storage.append(entry)
 
-        # self.server.storage.current_term = message.term
-
         if self.server.storage.commit_index < message.commit_index:
+            self.apply_commands()
             self.server.storage.commit_index = min(
                 self.server.storage.commit_index, message.commit_index
             )
-
         self.election_timer.reset()
 
         r = AppendEntriesReply(
@@ -258,3 +253,9 @@ class Follower(State):
             delivered_at=None,
         )
         return r
+
+    def apply_commands(self):
+        while self.storage.last_applied < self.server.storage.commit_index:
+            entry = self.server.storage.entries[self.last_applied+1]
+            self.server.apply(entry)
+            self.last_applied += 1

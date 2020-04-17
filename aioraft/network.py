@@ -1,6 +1,6 @@
 import logging
 from datetime import datetime
-from typing import Union
+from typing import Union, Any
 
 import grpc
 
@@ -17,13 +17,12 @@ from protos import raft_pb2_grpc, raft_pb2
 from protos.raft_pb2_grpc import RaftServiceServicer
 
 from protos.raft_pb2 import RequestVoteRequest, RequestVoteResponse
-from protos.raft_pb2 import AppendEntriesRequest, AppendEntriesResponse
+from protos.raft_pb2 import AppendEntriesRequest, AppendEntriesResponse, Entry
 
 
 class Peer:
     addr: str
-    rpc_due: int = 10 / 1000
-    heartbeat_due: int = 10 / 1000
+    # todo: use interface instead
     client: raft_pb2_grpc.RaftServiceStub
     storage: Storage
 
@@ -42,6 +41,7 @@ class Peer:
         return self.storage.match_term(self.addr)
 
     def SendAppendEntries(self, message: AppendEntries):
+       
         req = raft_pb2.AppendEntriesRequest(
             term=message.term,
             leaderId=message.leader_id,
@@ -57,7 +57,7 @@ class Peer:
             delivered_at=None,
             success=response.success,
             # todo: fill match_index
-            match_index=0,
+            match_index=self.match_index,
         )
 
     def SendRequestVote(self, message: RequestVote) -> RequestVoteReply:
@@ -77,7 +77,7 @@ class Peer:
         )
 
     def __str__(self):
-        return f"{self.addr}" f"{self.rpc_due} {self.heartbeat_due}"
+        return f"{self.addr}"
 
     def __hash__(self):
         return hash(self.addr)
@@ -88,11 +88,10 @@ class Peer:
 
 class Server(RaftServiceServicer):
     addr: str
-    log: dict  # (1, 1): []
     role: Union[Follower, Candidate, Leader]
     storage: Storage
     peers: set
-    state_machine: object
+    state_machine: Any
     client: raft_pb2_grpc.RaftServiceStub
 
     def __init__(self, addr, state_machine):
@@ -106,20 +105,35 @@ class Server(RaftServiceServicer):
     def set_storage(self, storage: Storage):
         self.storage = storage
 
-    def become(self, cls: Union["Follower", "Leader", "Candidate"]):
-        print(f"Server {self.addr} became a {cls} from {self.role.__class__}")
+    def become(self, state: Union[Follower, Leader, Candidate]):
+        """
+        Switches the server state to given state.
+        """
+        logging.info(f"Server {self.addr} became a {state} from {self.role.__class__}")
         self.stop()
-        self.role = cls(self)
+        self.role = state(self)
         self.role.start()
 
-    def apply_command(self, command_name, value):
+    def register_command(self, command_name, value):
+        """
+        Registers the new client command to the storage.
+        """
         self.storage.append(
             Entry(
+                index=self.storage.current_index,
                 term=self.storage.current_term,
-                command_name=command_name,
+                commandName=command_name,
                 command=value.encode()
             )
         )
+
+    def apply(self, entry: Entry):
+        import json
+        logging.critical(entry.command.decode())
+        args, kwargs = json.loads(entry.command.decode())
+        command_name = entry.command_name
+        logging.debug(f"Applying command {command_name}({args},{kwargs})")
+        getattr(self.state_machine, command_name)(*args, **kwargs)
 
     def start(self):
         self.role.start()
@@ -131,7 +145,11 @@ class Server(RaftServiceServicer):
         for server in servers:
             self.peers.add(Peer(addr=server, storage=self.storage))
 
-    async def validate_term(self, message: "Message"):
+    async def validate_term(self, message: Message):
+        """
+        Step downs the follower if server receives 
+        a message with a higher term
+        """
         current_term = self.storage.current_term
         if current_term < message.term:
             self.storage.current_term = message.term
@@ -143,7 +161,8 @@ class Server(RaftServiceServicer):
     def AppendEntries(
         self, request: AppendEntriesRequest, context
     ) -> AppendEntriesResponse:
-        """AppendEntries performs a single append entries request / response.
+        """AppendEntries performs a single append entries RPC using network client
+        and callbacks Role.on_append_entries with the response.
         :param request: AppendEntriesRequest(
             term=1,
             leaderId=2,
@@ -152,9 +171,6 @@ class Server(RaftServiceServicer):
             entries=[Entry(index, name, commandName, command)],
             leaderCommit=6,
         )
-        """
-        """
-        AppendEntries(term=1, delivered_at=None, sent_at=None, leader_id=944, prev_index=-1, prev_term=None, commit_index=None, entries=[])
         """
         message = AppendEntries(
             term=request.term,
@@ -177,7 +193,9 @@ class Server(RaftServiceServicer):
             logging.exception(e)
 
     def RequestVote(self, request: RequestVoteRequest, context):
-        """RequestVote is the command used by a candidate to ask a Raft peer for a vote in an election.
+        """
+        RequestVote asks to a Raft peer for a vote in an election
+        and callbacks Role.on_request_vote with the response.
         """
         message = RequestVote(
             term=request.term,

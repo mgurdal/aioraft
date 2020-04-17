@@ -11,7 +11,7 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
+ 
 syntax = "proto3";
 
 
@@ -72,10 +72,10 @@ message AppendEntriesRequest {
 }
 
 message AppendEntriesResponse {
-  // Takipçinin o anki güncel dönemi
+  // Followers current term
   int32 term = 1;
 
-  // Followerde gözüken term indeksi
+  // Index of the Followers current term
   int32 matchIndex = 2;
 
   // Eğer başarılı bir şekilde kayıtlar eklendiyse

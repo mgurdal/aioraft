@@ -1,2 +1,2 @@
-from aioraft.client import Cluster
-from aioraft.client import Config
+from aioraft.cluster import Cluster
+from aioraft.cluster import Config

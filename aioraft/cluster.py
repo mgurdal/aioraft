@@ -16,16 +16,17 @@ from aioraft.network import Server
 
 def track(cluster, command):
     """Tracks given command and replicates in cluster"""
-    print("Tracking", command)
 
     @functools.wraps(command)
     def wrapper(*args, **kwargs):
-        print("Replicating", command, "with", args, kwargs)
-        # Replicate state machine
-        logging.critical(cluster.server.storage.entries)
-        value = json.dumps({"args": args[1:], "kwargs": kwargs})
-        cluster.server.apply_command(command.__name__, value)
-        return command(*args, **kwargs)
+        logging.debug(f"Replicating {command} with {args} {kwargs}")
+        cls, *args = args  # first arg is the class itself
+        value = json.dumps({"args": args, "kwargs": kwargs})
+
+        # We will register the command to send them to the followers
+        # in background
+        cluster.server.register_command(command.__name__, value)
+        return command(cls, *args, **kwargs)
 
     return wrapper
 

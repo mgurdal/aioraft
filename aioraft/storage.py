@@ -36,9 +36,11 @@ class Storage:
 
     @property
     def current_term(self) -> int:
-        if self.disk["entries"]:
-            return self.disk["entries"][-1].term
-        return 0
+        return self.disk["term"]
+
+    @current_term.setter
+    def current_term(self, new_term):
+        self.disk["term"] = new_term
 
     @property
     def current_index(self) -> int:
@@ -88,9 +90,11 @@ class Storage:
         self.disk["peers"][target]["match_term"] = self.current_term
 
     def term_at(self, index):
+        if index < 1:
+            return 1
         if len(self.disk["entries"]) > index:
             return self.disk["entries"][index]
-        return 0
+        return 1
 
     def cut_from(self, index):
         self.disk["entries"][:] = self.disk["entries"][index:]
@@ -103,7 +107,7 @@ class Storage:
     def entries(self) -> List[Entry]:
         return self.disk["entries"]
 
-    def new_entries(self, target) -> List[Entry]:
+    def new_entries(self, target: "Peer") -> List[Entry]:
         return self.disk["entries"][target.match_index:self.current_index]
 
     def append(self, entry: Entry):
